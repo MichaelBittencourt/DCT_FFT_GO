@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"math/cmplx"
 	"os"
 )
 
@@ -63,31 +65,61 @@ func main() {
 	}
 }
 
-func getValue() (float64, int, error) {
-	var ret float64
-	qtdRead, err := fmt.Scanf("%f", &ret)
+func getValue() (complex128, int, error) {
+	var realRet float64
+	var imgRet float64
+	var ret complex128
+	qtdRead, err := fmt.Scanf("%f %f", &realRet, &imgRet)
+	ret = complex(realRet, imgRet)
 	return ret, qtdRead, err
 }
 
-func readData() []float64 {
-	var data []float64
+func readData() []complex128 {
+	var data []complex128
 	for {
 		value, qtdRead, _ := getValue()
 		if qtdRead == 0 {
 			break
+		} else if qtdRead < 2 {
+			fmt.Println("input format invalid")
+			os.Exit(1)
 		}
 		data = append(data, value)
 	}
 	return data
 }
 
-func printData(data []float64) {
+func printData(data []complex128) {
 	for i := 0; i < len(data); i++ {
-		fmt.Printf("data[%d]: %.2f\n", i, data[i])
+		fmt.Printf("data[%d]: ", i)
+		fmt.Println(data[i])
 	}
 }
 
 func dct() {
 	data := readData()
 	printData(data)
+	X := dct_calc(data)
+	printData(X)
+}
+
+func dct_calc(data []complex128) []complex128 {
+	N := len(data)
+	//var WN complex128 = cmplx.Exp((-2i * math.Pi) / N)
+	//var X []complex128
+
+	for k := 0; k < N; k++ {
+		var acc complex128 = 0 + 0i
+		for n := 0; n < N; n++ {
+			//X[k] += data[n] * cmplx.Pow(WN, n*k)
+			value := 2i
+			cPI := complex128(math.Pi)
+			nk := complex(float64(n*k), 0)
+			NComplex := complex(float64(N), 0)
+			acc += data[n] * cmplx.Exp((value*cPI*nk)/NComplex)
+		}
+		fmt.Println(acc)
+		//append(X, acc)
+	}
+	return []complex128{}
 }
