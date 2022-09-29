@@ -98,28 +98,25 @@ func printData(data []complex128) {
 
 func dct() {
 	data := readData()
+	fmt.Println("Data from stdin")
 	printData(data)
 	X := dct_calc(data)
+	fmt.Println()
+	fmt.Println("result of DCT")
 	printData(X)
 }
 
 func dct_calc(data []complex128) []complex128 {
 	N := len(data)
-	//var WN complex128 = cmplx.Exp((-2i * math.Pi) / N)
-	//var X []complex128
+	var WN complex128 = cmplx.Exp((-2i * complex(math.Pi, 0)) / complex(float64(N), 0))
+	var X = make([]complex128, N)
 
 	for k := 0; k < N; k++ {
-		var acc complex128 = 0 + 0i
+		X[k] = 0 + 0i
 		for n := 0; n < N; n++ {
-			//X[k] += data[n] * cmplx.Pow(WN, n*k)
-			value := 2i
-			cPI := complex128(math.Pi)
-			nk := complex(float64(n*k), 0)
-			NComplex := complex(float64(N), 0)
-			acc += data[n] * cmplx.Exp((value*cPI*nk)/NComplex)
+			exponent := complex(float64(n*k), 0)
+			X[k] += data[n] * cmplx.Pow(WN, exponent)
 		}
-		fmt.Println(acc)
-		//append(X, acc)
 	}
-	return []complex128{}
+	return X
 }
