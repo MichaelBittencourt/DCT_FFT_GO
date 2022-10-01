@@ -133,20 +133,25 @@ func dct(data []complex128, inverse bool) []complex128 {
 	}
 
 	var WN complex128 = cmplx.Exp((sign * 2i * PI) / N)
+	WN_iterator := complex(1, 0) //Using this variable I can optimize the operation on the line cmplx.Pow(WN, n*k) because I can consider WN^k = WN^(k-1) * WN
 	var X = make([]complex128, arraySize)
 
 	for k := 0; k < arraySize; k++ {
 		X[k] = 0 + 0i
+		WNK := complex(1, 0) // With the same intention of WN_iterator I can calculate WNK^n = WNK^(n-1) * WN_iterator and I can remove the instruction cmplx.Pow(WN, n*k)
 		for n := 0; n < arraySize; n++ {
-			exponent := complex(float64(n*k), 0)
-			X[k] += data[n] * cmplx.Pow(WN, exponent)
+			//exponent := complex(float64(n*k), 0)
+			//X[k] += data[n] * cmplx.Pow(WN, exponent) // I will not remove this command to understand why I used WN_iterator and WNK to optimize operations
+			X[k] += data[n] * WNK // this is as equal cmplx.Pow(WN, n*k) because WNk = WN^k and in the next instruction I update WNK that start as WNK^0 to WNK^1 = WNK^0 * WN_iterator WNK^n = WN_iterator^n = WNK^(n-1) * WN_iterator
+			WNK *= WN_iterator
 		}
 		X[k] *= constInverse
+		WN_iterator *= WN
 	}
 	return X
 }
 
-func fft(data []complex128, inverse bool) []complex128 {
+func fft_calc(data []complex128) []complex128 {
 	var X []complex128
 	arraySize := len(data)
 	if verbosity {
@@ -158,16 +163,19 @@ func fft(data []complex128, inverse bool) []complex128 {
 			fmt.Println("Is base 2")
 		}
 		N := complex(float64(arraySize), 0)
-		var sign complex128
 		PI := complex(math.Pi, 0)
-		constInverse := complex(1, 0)
-		if inverse {
-			sign = 1
-			constInverse /= N
-		} else {
-			sign = -1
-		}
-		var WN complex128 = cmplx.Exp((sign * 2i * PI) / N)
+		/*
+			var sign complex128
+			constInverse := complex(1, 0)
+			if inverse {
+				sign = 1
+				constInverse /= N
+			} else {
+				sign = -1
+			}
+			var WN complex128 = cmplx.Exp((sign * 2i * PI) / N)
+		*/
+		var WN complex128 = cmplx.Exp((-2i * PI) / N)
 		if arraySize != 1 {
 			var data1 []complex128
 			var data2 []complex128
@@ -178,17 +186,17 @@ func fft(data []complex128, inverse bool) []complex128 {
 					data2 = append(data2, data[k])
 				}
 			}
-			G := fft(data1, inverse)
+			G := fft_calc(data1)
 			if verbosity {
 				fmt.Printf("G: %d\n", len(G))
 			}
-			H := fft(data2, inverse)
+			H := fft_calc(data2)
 			if verbosity {
 				fmt.Printf("H: %d\n", len(H))
 			}
 			GSize := len(G)
 			for k := 0; k < arraySize; k++ {
-				xk := constInverse * (G[k%GSize] + cmplx.Pow(WN, complex(float64(k), 0))*H[k%GSize])
+				xk := G[k%GSize] + cmplx.Pow(WN, complex(float64(k), 0)*H[k%GSize])
 				X = append(X, xk)
 			}
 		} else {
@@ -196,4 +204,42 @@ func fft(data []complex128, inverse bool) []complex128 {
 		}
 	}
 	return X
+}
+
+// ifft does the actual work for IFFT
+func ifft(data []complex128) []complex128 {
+	N := len(data)
+	X := data
+	// Reverse the input vector
+	printData(data)
+	for i := 1; i < N/2; i++ {
+		j := N - i
+		X[i], X[j] = X[j], X[i]
+	}
+
+	fmt.Println("Data after change")
+	printData(data)
+	// Do the transform.
+	X = fft_calc(X)
+	fmt.Println("Data after FFT")
+	printData(X)
+
+	// Scale the output by 1/N
+	invN := complex(1.0/float64(N), 0)
+	fmt.Printf("InvN: ")
+	fmt.Println(invN)
+	for i := 0; i < N; i++ {
+		fmt.Printf("X[%d]: ", i)
+		fmt.Println(X[i])
+		X[i] *= invN
+	}
+	return X
+}
+
+func fft(data []complex128, inverse bool) []complex128 {
+	if inverse {
+		return ifft(data)
+	} else {
+		return fft_calc(data)
+	}
 }
