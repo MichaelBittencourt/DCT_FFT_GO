@@ -178,7 +178,7 @@ func getDecimatedVector(data []complex128) []complex128 {
     return X
 }
 
-func fft_prof(data []complex128, inverse bool) []complex128{
+func fft_dec_freq(data []complex128, inverse bool) []complex128{
 
     arraySize := len(data)
     N := complex(float64(arraySize), 0)
@@ -216,9 +216,7 @@ func fft_prof(data []complex128, inverse bool) []complex128{
     return getDecimatedVector(data)
 }
 
-
-
-func t_fft_prof(data []complex128, inverse bool) []complex128{
+func fft_dec_time(data []complex128, inverse bool) []complex128{
 
     arraySize := len(data)
     N := complex(float64(arraySize), 0)
@@ -256,99 +254,14 @@ func t_fft_prof(data []complex128, inverse bool) []complex128{
     return data
 }
 
-func fft_calc(data []complex128) []complex128 {
-    var X []complex128
-    arraySize := len(data)
-    if verbosity {
-        fmt.Println("arraySize: %d", arraySize)
-    }
-    lgSize := math.Log2(float64(arraySize))
-    if lgSize == float64(int(lgSize)) { //If lg(arraySize) is a integer value.
-        if verbosity {
-            fmt.Println("Is base 2")
-        }
-        N := complex(float64(arraySize), 0)
-        PI := complex(math.Pi, 0)
-        /*
-        var sign complex128
-        constInverse := complex(1, 0)
-        if inverse {
-            sign = 1
-            constInverse /= N
-        } else {
-            sign = -1
-        }
-        var WN complex128 = cmplx.Exp((sign * 2i * PI) / N)
-        */
-        var WN complex128 = cmplx.Exp((-2i * PI) / N)
-        if arraySize != 1 {
-            var data1 []complex128
-            var data2 []complex128
-            for k := 0; k < arraySize; k++ {
-                if k%2 == 0 {
-                    data1 = append(data1, data[k])
-                } else {
-                    data2 = append(data2, data[k])
-                }
-            }
-            G := fft_calc(data1)
-            if verbosity {
-                fmt.Printf("G: %d\n", len(G))
-            }
-            H := fft_calc(data2)
-            if verbosity {
-                fmt.Printf("H: %d\n", len(H))
-            }
-            GSize := len(G)
-            for k := 0; k < arraySize; k++ {
-                xk := G[k%GSize] + cmplx.Pow(WN, complex(float64(k), 0)*H[k%GSize])
-                X = append(X, xk)
-            }
-        } else {
-            X = data
-        }
-    }
-    return X
-}
-
-// ifft does the actual work for IFFT
-func ifft(data []complex128) []complex128 {
-    N := len(data)
-    X := data
-    // Reverse the input vector
-    printData(data)
-    for i := 1; i < N/2; i++ {
-        j := N - i
-        X[i], X[j] = X[j], X[i]
-    }
-
-    fmt.Println("Data after change")
-    printData(data)
-    // Do the transform.
-    X = fft_calc(X)
-    fmt.Println("Data after FFT")
-    printData(X)
-
-    // Scale the output by 1/N
-    invN := complex(1.0/float64(N), 0)
-    fmt.Printf("InvN: ")
-    fmt.Println(invN)
-    for i := 0; i < N; i++ {
-        fmt.Printf("X[%d]: ", i)
-        fmt.Println(X[i])
-        X[i] *= invN
-    }
-    return X
-}
-
 func fft(data []complex128, inverse bool, frequency_decimation bool) []complex128 {
     lgSize := math.Log2(float64(len(data)))
     var ret []complex128
     if lgSize == float64(int(lgSize)) {
         if frequency_decimation {
-            ret = fft_prof(data, inverse)
+            ret = fft_dec_freq(data, inverse)
         } else {
-            ret = t_fft_prof(getDecimatedVector(data), inverse)
+            ret = fft_dec_time(getDecimatedVector(data), inverse)
         }
     } else {
         os.Stderr.WriteString("Use a vector that is power of 2")
