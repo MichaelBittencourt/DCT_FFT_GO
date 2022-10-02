@@ -255,17 +255,32 @@ func fft_dec_time(data []complex128, inverse bool) []complex128{
 }
 
 func fft(data []complex128, inverse bool, frequency_decimation bool) []complex128 {
-    lgSize := math.Log2(float64(len(data)))
     var ret []complex128
-    if lgSize == float64(int(lgSize)) {
-        if frequency_decimation {
-            ret = fft_dec_freq(data, inverse)
-        } else {
-            ret = fft_dec_time(getDecimatedVector(data), inverse)
-        }
+    qtdZerosAdded := 0
+    if verbosity {
+        printData(data)
+    }
+    if frequency_decimation {
+        ret = fft_dec_freq(data, inverse)
     } else {
-        os.Stderr.WriteString("Use a vector that is power of 2")
-        os.Exit(2)
+        data, qtdZerosAdded = zeroPadding(getDecimatedVector(data))
+        ret = fft_dec_time(data, inverse)
+    }
+    if verbosity {
+        fmt.Fprintf(os.Stderr, "Quantity of zeros added: %d\n", qtdZerosAdded)
     }
     return ret
+}
+
+func zeroPadding(data []complex128) ([]complex128, int) {
+    N := len(data)
+    lgSize := math.Log2(float64(N))
+    if lgSize != float64(int(lgSize)) {
+        lgSize = float64(int(lgSize + 1))
+    }
+    arraySize := math.Pow(2, lgSize)
+    for i := N; i < int(arraySize); i++ {
+        data = append(data, complex(0, 0))
+    }
+    return data, (int(arraySize) - N)
 }
