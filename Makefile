@@ -3,10 +3,12 @@ SRC=pds.go
 TARGET=pds
 RM=rm
 
+all: $(TARGET)
+
 $(TARGET): $(SRC)
 	$(CC)
 
-.PHONY: test clean
+.PHONY: test clean all
 
 test: $(TARGET)
 	@ echo Running dct
