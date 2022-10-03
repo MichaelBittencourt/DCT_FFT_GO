@@ -260,11 +260,11 @@ func fft(data []complex128, inverse bool, frequency_decimation bool) []complex12
     if verbosity {
         printData(data)
     }
+    data, qtdZerosAdded = zeroPadding(data)
     if frequency_decimation {
         ret = fft_dec_freq(data, inverse)
     } else {
-        data, qtdZerosAdded = zeroPadding(getDecimatedVector(data))
-        ret = fft_dec_time(data, inverse)
+        ret = fft_dec_time(getDecimatedVector(data), inverse)
     }
     if verbosity {
         fmt.Fprintf(os.Stderr, "Quantity of zeros added: %d\n", qtdZerosAdded)
