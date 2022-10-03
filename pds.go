@@ -11,6 +11,7 @@ import (
 
 var Version = "0.0.0"
 var verbosity = false
+var padding = false
 
 func help() {
     fmt.Println("Usage:")
@@ -61,6 +62,8 @@ func main() {
             invert_flag = true
         case "freq":
             frequency_decimation_flag = true
+        case "padding":
+            padding = true
         default:
             invalidParam(item)
             os.Exit(1)
@@ -213,7 +216,7 @@ func fft_dec_freq(data []complex128, inverse bool) []complex128{
             data[i] *= constInverse
         }
     }
-    return getDecimatedVector(data)
+    return data
 }
 
 func fft_dec_time(data []complex128, inverse bool) []complex128{
@@ -262,9 +265,12 @@ func fft(data []complex128, inverse bool, frequency_decimation bool) []complex12
     }
     data, qtdZerosAdded = zeroPadding(data)
     if frequency_decimation {
-        ret = fft_dec_freq(data, inverse)
+        ret = getDecimatedVector(fft_dec_freq(data, inverse))
     } else {
         ret = fft_dec_time(getDecimatedVector(data), inverse)
+    }
+    if padding {
+        ret = ret[:len(ret)-qtdZerosAdded]
     }
     if verbosity {
         fmt.Fprintf(os.Stderr, "Quantity of zeros added: %d\n", qtdZerosAdded)
