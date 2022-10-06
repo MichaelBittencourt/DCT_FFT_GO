@@ -15,11 +15,11 @@ var padding = false
 
 func help() {
     fmt.Println("Usage:")
-    fmt.Printf("    %s [ help | version | dct | fft ]\n", os.Args[0])
+    fmt.Printf("    %s [ help | version | dft | fft ]\n", os.Args[0])
     fmt.Println("\t -h | help\tShow help message")
     fmt.Println("\t version\tShow current version")
     fmt.Println("\t -v\tSet verbosity")
-    fmt.Println("\t dct\t\tSet to use dct")
+    fmt.Println("\t dft\t\tSet to use dft")
     fmt.Println("\t inv\t\tSet to use invert transformation")
     fmt.Println()
     fmt.Println("    Eg:")
@@ -28,7 +28,7 @@ func help() {
     fmt.Printf("\t%s version\n", os.Args[0])
     fmt.Printf("\t%s -v\n", os.Args[0])
 
-    fmt.Printf("\t%s dct\n", os.Args[0])
+    fmt.Printf("\t%s dft\n", os.Args[0])
     fmt.Printf("\t%s inv\n", os.Args[0])
 }
 
@@ -42,7 +42,7 @@ func invalidParam(param string) {
 }
 
 func main() {
-    dct_flag := false
+    dft_flag := false
     invert_flag := false
     frequency_decimation_flag := false
     argv := os.Args[1:]
@@ -56,8 +56,8 @@ func main() {
             os.Exit(0)
         case "-v":
             verbosity = true
-        case "dct":
-            dct_flag = true
+        case "dft":
+            dft_flag = true
         case "inv":
             invert_flag = true
         case "freq":
@@ -75,11 +75,11 @@ func main() {
         printData(data)
     }
     var X []complex128
-    if dct_flag {
+    if dft_flag {
         if verbosity {
-            fmt.Println("Run dct function")
+            fmt.Println("Run dft function")
         }
-        X = dct(data, invert_flag)
+        X = dft(data, invert_flag)
     } else {
         if verbosity {
             fmt.Println("Run fft function")
@@ -126,7 +126,7 @@ func printOutput(data []complex128) {
     }
 }
 
-func dct(data []complex128, inverse bool) []complex128 {
+func dft(data []complex128, inverse bool) []complex128 {
     arraySize := len(data)
     N := complex(float64(arraySize), 0)
     var sign complex128

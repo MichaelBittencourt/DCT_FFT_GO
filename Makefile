@@ -11,10 +11,10 @@ $(TARGET): $(SRC)
 .PHONY: test clean all
 
 test: $(TARGET)
-	@ echo Running dct
-	./$< dct < input.txt | ./$< dct inv
-	./$< dct < input2.txt | ./$< dct inv
-	./$< dct < input3.txt | ./$< dct inv
+	@ echo Running dft
+	./$< dft < input.txt | ./$< dft inv
+	./$< dft < input2.txt | ./$< dft inv
+	./$< dft < input3.txt | ./$< dft inv
 	@ echo Running fft with time decimation
 	./$< < input.txt | ./$< inv
 	./$< < input2.txt | ./$< inv
